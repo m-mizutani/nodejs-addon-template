@@ -1,5 +1,6 @@
 #define BUILDING_NODE_EXTENSION
 #include <node.h>
+#include <unistd.h>
 
 namespace addon {
   
@@ -162,6 +163,54 @@ namespace addon {
 
 
 
+
+
+  // == Asynchronous processing =============================================
+  class Alice {
+  public:
+    v8::Persistent<v8::Function> callback_;
+  };
+
+  void DoTask (uv_work_t *req) {
+    /* Something computationally expensive here */
+    sleep (5);
+  }
+
+  /* the "after work" callback; called on the main thread */
+  void FinishTask (uv_work_t *req) {
+    v8::HandleScope scope;
+
+    Alice * a = static_cast<Alice *> (req->data);
+
+    v8::Handle<v8::Value> argv[1];
+    argv[0] = v8::String::New ("ploy");
+
+    v8::TryCatch try_catch;
+    a->callback_->Call(v8::Context::GetCurrent()->Global(), 1, argv);
+
+    // cleanup
+    a->callback_.Dispose();
+    delete a;
+    delete req;
+
+    if (try_catch.HasCaught())
+      node::FatalException(try_catch);
+  }
+
+  /* the JS entry point */
+  v8::Handle<v8::Value> RunTask (const v8::Arguments& args) {
+    v8::HandleScope scope;
+
+    uv_work_t *req = new uv_work_t;
+    Alice * a = new Alice ();
+    a->callback_ = v8::Persistent<v8::Function>::New(v8::Local<v8::Function>::Cast(args[0]));
+    req->data = a;
+
+    uv_queue_work(uv_default_loop(), req, DoTask, FinishTask);
+
+    return scope.Close (v8::Undefined());
+  }
+
   // == Initializer ========================================================
   void Init(v8::Handle<v8::Object> target) {
     target->Set (v8::String::NewSymbol("add"),
@@ -170,6 +219,8 @@ namespace addon {
                  v8::FunctionTemplate::New(CreateObject)->GetFunction ());
     target->Set (v8::String::NewSymbol("runCallback"),
                  v8::FunctionTemplate::New(RunCallback)->GetFunction());
+    target->Set (v8::String::NewSymbol("async_task"),
+                 v8::FunctionTemplate::New(RunTask)->GetFunction());
 
     Blue::init (target);
     Orange::init (target);

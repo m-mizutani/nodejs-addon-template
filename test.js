@@ -20,3 +20,8 @@ mikan.set_cb (function (msg) {
 	console.log (msg);
     });
 mikan.run_cb ();
+
+addon.async_task (function (res) {
+	console.log (res);
+    });
+console.log ('sync process');
