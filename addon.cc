@@ -135,14 +135,14 @@ namespace addon {
 
   v8::Handle<v8::Value> Orange::SetCallback (const v8::Arguments & args) {
     v8::HandleScope scope;
-    Orange * toko = node::ObjectWrap::Unwrap <Orange> (args.This ());
+    Orange * orange = node::ObjectWrap::Unwrap <Orange> (args.This ());
 
     if (args.Length () != 1 || !args[0]->IsFunction ()) {
       v8::ThrowException (v8::Exception::TypeError (v8::String::New ("Invalid argument")));
       return scope.Close (v8::Undefined ());
     }
 
-    toko->callback_ = 
+    orange->callback_ = 
       v8::Persistent<v8::Function>::New (v8::Local<v8::Function>::Cast(args[0]));
 
     return scope.Close(v8::Undefined());
@@ -150,11 +150,11 @@ namespace addon {
 
   v8::Handle<v8::Value> Orange::RunCallback (const v8::Arguments & args) {
     v8::HandleScope scope;
-    Orange * toko = node::ObjectWrap::Unwrap <Orange> (args.This ());
+    Orange * orange = node::ObjectWrap::Unwrap <Orange> (args.This ());
 
     v8::Local<v8::Value> argv[1];    
     argv[0] = v8::String::New ("scar");
-    v8::Local<v8::Function> cb = v8::Local<v8::Function>::New(toko->callback_);
+    v8::Local<v8::Function> cb = v8::Local<v8::Function>::New(orange->callback_);
     cb->Call (v8::Context::GetCurrent ()->Global (), 1, argv);
 
     return scope.Close(v8::Undefined());

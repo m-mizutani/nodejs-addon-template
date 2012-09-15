@@ -15,8 +15,8 @@ console.log (ao.Count ());
 console.log (ao.Count ());
 console.log (ao.Count ());
 
-toko = new addon.orange ();
-toko.set_cb (function (msg) {
+mikan = new addon.orange ();
+mikan.set_cb (function (msg) {
 	console.log (msg);
     });
-toko.run_cb ();
+mikan.run_cb ();
