@@ -173,7 +173,13 @@ namespace addon {
 
   void DoTask (uv_work_t *req) {
     /* Something computationally expensive here */
-    sleep (5);
+    long long a = 1, p, q;
+    p = q = a;
+    for (long long n = 0; n < 1000000000; n++) {
+      a = p + q;
+      q = p;
+      p = a;
+    }
   }
 
   /* the "after work" callback; called on the main thread */
