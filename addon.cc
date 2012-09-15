@@ -169,17 +169,21 @@ namespace addon {
   class Alice {
   public:
     v8::Persistent<v8::Function> callback_;
+    long long res_;
   };
 
   void DoTask (uv_work_t *req) {
     /* Something computationally expensive here */
     long long a = 1, p, q;
     p = q = a;
-    for (long long n = 0; n < 1000000000; n++) {
+    for (long long n = 0; n < 10000000000; n++) {
       a = p + q;
       q = p;
       p = a;
     }
+    
+    Alice * k = static_cast<Alice *> (req->data);
+    k->res_ = a;
   }
 
   /* the "after work" callback; called on the main thread */
@@ -189,7 +193,7 @@ namespace addon {
     Alice * a = static_cast<Alice *> (req->data);
 
     v8::Handle<v8::Value> argv[1];
-    argv[0] = v8::String::New ("ploy");
+    argv[0] = v8::Integer::New (a->res_);
 
     v8::TryCatch try_catch;
     a->callback_->Call(v8::Context::GetCurrent()->Global(), 1, argv);
