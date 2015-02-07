@@ -1,6 +1,6 @@
-#define BUILDING_NODE_EXTENSION
 #include <node.h>
 #include <unistd.h>
+#include <v8.h>
 
 // 趣味。特にnamespaceを切る必要はない
 namespace addon {
@@ -279,7 +279,8 @@ namespace addon {
     req->data = a;
 
     // uv_queue_work()でキューに入れる。
-    uv_queue_work(uv_default_loop(), req, DoTask, FinishTask);
+    uv_queue_work(uv_default_loop(), req, DoTask,
+                  (uv_after_work_cb)FinishTask);
 
     return scope.Close (v8::Undefined());
   }
